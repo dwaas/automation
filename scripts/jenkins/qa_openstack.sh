@@ -83,7 +83,7 @@ else
     fi
 fi
 
-zypper="zypper --non-interactive"
+zypper="zypper --non-interactive --non-interactive-include-reboot-patches"
 
 zypper rr cloudhead || :
 
@@ -157,20 +157,20 @@ fi
 
 # install maintenance updates
 # run twice, first installs zypper update, then the rest
-$zypper -n patch --skip-interactive || $zypper -n patch --skip-interactive
+$zypper patch --auto-agree-with-licenses || $zypper patch --auto-agree-with-licenses
 
 # grizzly or master does not want dlp
 $zypper rr dlp || true
 
 $zypper rr Virtualization_Cloud # repo was dropped but is still in some images for cloud-init
-$zypper --gpg-auto-import-keys -n ref
+$zypper --gpg-auto-import-keys ref
 
 # deinstall some leftover crap from the cleanvm
-$zypper -n rm --force 'python-cheetah < 2.4'
+$zypper rm --force 'python-cheetah < 2.4'
 
 # deinstall cloud-init and dependencies (but keep cloud-final systemd unit around)
 cp /usr/lib/systemd/system/cloud-final.service /tmp
-$zypper -n rm --force -u cloud-init
+$zypper rm --force -u cloud-init
 cp /tmp/cloud-final.service /usr/lib/systemd/system/cloud-final.service
 # wickedd needs to be configured properly to avoid overriding
 # the hostname (see <https://bugzilla.opensuse.org/show_bug.cgi?id=974661>).
@@ -180,14 +180,14 @@ sed -i -e "s/DHCLIENT6_SET_HOSTNAME=\"yes\"/DHCLIENT6_SET_HOSTNAME=\"no\"/" /etc
 ifup all
 
 # install some basics (which is i.e. not installed in the SLE12SP1 JeOS
-$zypper -n in wget
+$zypper in wget
 
 # Everything below here is fatal
 set -e
 
 # start with patterns
-$zypper -n install -t pattern cloud_controller cloud_compute cloud_network
-$zypper -n install --force openstack-quickstart openstack-tempest-test
+$zypper install -t pattern cloud_controller cloud_compute cloud_network
+$zypper install --force openstack-quickstart openstack-tempest-test
 
 # for debugging, use some files if available after installing
 # the openstack-quickstart package
